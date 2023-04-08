@@ -9,6 +9,7 @@ import gulpAutoprefixer from 'gulp-autoprefixer';
 import gulpRename from 'gulp-rename';
 import gulpSize from 'gulp-size';
 import browserSync from 'browser-sync';
+let sync = browserSync.create();
 
 // For scripts
 import gulpBabel from 'gulp-babel';
@@ -71,11 +72,8 @@ async function html() {
         .pipe(gulpHtmlmin({
             collapseWhitespace: true
         }))
-        .pipe(gulpRename({
-            suffix: '.min'
-        }))
         .pipe(gulp.dest(paths.html.dest))
-
+        .pipe(sync.stream());
 }
 
 
@@ -83,13 +81,12 @@ async function html() {
 async function js() {
     return gulp.src(paths.js.src)
         .pipe(gulpSourcemaps.init())
-        .pipe(gulpBabel({
-            presets: ['@babel/preset-env']
-        }))
-        .pipe(gulpConcat('main.min.js'))
-        .pipe(gulpUglify())
+        .pipe(gulpUglify()).on('error', function (err) {
+            console.log('Code have syntaxis errors');
+        })
         .pipe(gulpSourcemaps.write())
         .pipe(gulp.dest(paths.js.dest))
+        .pipe(sync.stream());
 }
 
 async function styles() {
@@ -105,6 +102,7 @@ async function styles() {
         }))
         .pipe(gulpSourcemaps.write())
         .pipe(gulp.dest(paths.styles.dest))
+        .pipe(sync.stream());
 }
 
 async function imagesToWebp() {
@@ -134,7 +132,13 @@ async function images() {
 
 
 async function watch() {
-    gulp.watch(paths.html.src, html);
+    sync.init({
+        server: {
+            baseDir: "./dist"
+        }
+    });
+    gulp.watch((paths.html.src), html)
+    gulp.watch((paths.html.src)).on('change', sync.reload);
     gulp.watch(paths.js.src, js);
     gulp.watch(paths.styles.src, styles);
     gulp.watch(paths.images.src, images);
