@@ -85,9 +85,6 @@ async function html() {
 async function js() {
     return gulp.src(paths.js.src)
         .pipe(gulpSourcemaps.init())
-        .pipe(gulpUglify()).on('error', function (err) {
-            console.log('Code have syntaxis errors');
-        })
         .pipe(gulpSourcemaps.write())
         .pipe(gulp.dest(paths.js.dest))
 }
