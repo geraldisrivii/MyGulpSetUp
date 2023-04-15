@@ -68,7 +68,9 @@ async function clean() {
 
 async function html() {
     gulp.src(paths.html.main)
-        .pipe(gulpFileIncluder())
+        .pipe(gulpFileIncluder().on('error', function (err) {
+            console.log("Path isn't correct");
+        }))
         .pipe(gulpHtmlmin({
             collapseWhitespace: true
         }))
@@ -77,7 +79,9 @@ async function html() {
 }
 
 
-
+/* .pipe(gulpUglify()).on('error', function (err) {
+    console.log('Code have syntaxis errors');
+}) */
 async function js() {
     return gulp.src(paths.js.src)
         .pipe(gulpSourcemaps.init())
@@ -86,7 +90,6 @@ async function js() {
         })
         .pipe(gulpSourcemaps.write())
         .pipe(gulp.dest(paths.js.dest))
-        .pipe(sync.stream());
 }
 
 async function styles() {
@@ -102,7 +105,6 @@ async function styles() {
         }))
         .pipe(gulpSourcemaps.write())
         .pipe(gulp.dest(paths.styles.dest))
-        .pipe(sync.stream());
 }
 
 async function imagesToWebp() {
@@ -140,7 +142,7 @@ async function watch() {
     gulp.watch((paths.html.src), html)
     gulp.watch((paths.html.src)).on('change', sync.reload);
     gulp.watch(paths.js.src, js);
-    gulp.watch(paths.styles.src, styles);
+    gulp.watch(paths.styles.src, styles).on('change', sync.reload);
     gulp.watch(paths.images.src, images);
     gulp.watch(paths.images.src, imagesToAvif);
     gulp.watch(paths.images.src, imagesToWebp);
